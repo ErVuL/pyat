@@ -351,7 +351,7 @@ def write_bathy( btyfile, range_depth_array):
     if btyfile[-3:] != 'bty':
         btyfile += '.bty'
     with open(btyfile, 'w') as f:
-        f.write('CS\r\n') 
+        f.write("\'CS\'\r\n") 
         f.write(str(range_depth_array.shape[0])+'\r\n')
         for row in range(range_depth_array.shape[0]):
             vals = range_depth_array[row,:]
