@@ -565,6 +565,3 @@ def plot_mod(modes, n, PlotTitle, **kwargs):
     ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+f" First {n} Mode Shapes")
     ax.invert_yaxis()
     return fig, ax
-
-
-    

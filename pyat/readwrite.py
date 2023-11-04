@@ -1515,3 +1515,10 @@ def read_shd_asc(filename):
 
 def read_ram_tlgrid(filename):
     raise NotImplementedError
+    
+def write_ati(filename, depth, interp):
+    with open(filename, 'wt') as f:
+        f.write("'%c'\n" % ('C' if interp == 'C' else 'L'))
+        f.write(str(depth.shape[0])+"\n")
+        for j in range(depth.shape[0]):
+            f.write("%0.6f %0.6f\n" % (depth[j,0]/1000, depth[j,1]))
