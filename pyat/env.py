@@ -285,7 +285,8 @@ class Arrival:
         self.rec_ang = info_list[3] 
         self.num_top_bnc = info_list[4] 
         self.num_bot_bnc = info_list[5] 
-        
+
+# Maybe deprecated ?
 class Arrivals:
     def __init__(self, arrival_list):
         self.arrivals = arrival_list
@@ -407,7 +408,7 @@ class Eigenray:
         self.num_bot_bnc = num_bot_bnc
         self.xy = xy_arr
 
-def plot_ssp(ssp):
+def plot_ssp(ssp, PlotTitle, **kwargs):
     """
     Plot SSP object
     Make a plot for comprresive speed, shear speed, density, compressional atten.
@@ -424,6 +425,7 @@ def plot_ssp(ssp):
         for k in range(5):
             ax = axes.ravel()[k]
             ax.plot(y_list[k], z)
+            ax.grid('all')
     labels = ['c', 'cs', '$\\rho$', '$\\alpha$', '$\\beta$']
     for k in range(5):
         ax = axes.ravel()[k]
@@ -432,6 +434,137 @@ def plot_ssp(ssp):
         ax.set_ylabel('Depth (m)')
 
     fig.subplots_adjust(wspace=.2, hspace=.25)
+    fig.suptitle("[ "+PlotTitle[0].decode('utf-8')+"]"+" SSP")
+
     return fig, axes
         
+def plot_cir(arrival, PlotTitle, vals=None,ax=None, **kwargs):
+    """
+    Plot the channel impulse response
+    Vals provides the option to pass in a set of arrivals to use fo calibrating the y axis
+    If vals=None, I use the arrivals in the object to calibrate the y-axis
+    I don't create a figure
+    I return ymin, ymax, vals so that the values from this arrival set can be used in a more global
+    scope to set the y-axis limits (useful for creating videos comprised of snapshots of a bunch
+    of CIR's). For example, I want to plot a bunch of Arrivals on the same plot, or combine a bunch of
+    CIRs into a video. Then I need to have the same axis limits for all the plots. 
+    I can use default vals (None) for the first plot, then use the ymin, ymax, vals return values
+    in a larger scope to standardize the axes. Then for the second, third, ... plots, I pass in vals
+    to make sure they all have the same time axis.
+    Output - 
+        ymin - float
+        ymax -float 
+            plus/minus 1.5 times max amplitude value
+        vals - list
+            vals[0] is the times
+            vals[1] is the amplitude vals
+    """
+    arrivals  = [] 
+    for ar in arrival:
+        arrivals.append(Arrival(ar))
+    arrival_list = arrivals
+    amps = np.array([abs(x.amp) for x in arrival_list])
+    phase = np.array([np.angle(x.amp) for x in arrival_list])
+    times = np.array([x.delay for x in arrival_list])
+    """
+    Create the time axis
+    """
+    if type(vals) != type(None):
+        t = np.linspacea(.9*np.min(vals[0]), 1.1*np.max(vals[0]), 100)
+    else:
+        t = np.linspace(.9*np.min(times), 1.1*np.max(times), 100)
+    zeros = np.zeros(t.size)
+    if type(ax) == type(None):
+        fig, ax = plt.subplots(1,1) 
+    ax.scatter(t.real, zeros, s=6)
+    ax.stem(times.real, amps.real, markerfmt=' ', basefmt=' ',use_line_collection=True)
+    ax.scatter(times.real, amps,s=16,c='k')
+    scale = 1.5*np.max(abs(amps)) # set yaxis scale
+    ymin = - scale
+    ymax = scale
+    vals = [times.real, amps]
+    ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Channel impulse response")
+    ax.set_xlabel('Delay [s]')
+    ax.set_ylabel('Amp [N/A]')
+    ax.grid('all')
+    return ymin, ymax, vals
 
+def plot_ellipse(arrival, PlotTitle, vals=None, ref_amp =None, src_ang=False, ax=None, **kwargs):
+    """
+    Produce the travel time ellipse with colorbar for amplitude
+    Input - 
+    self - contains all the arrival info
+    vals - optional
+        allows me to use a reference arrival set to calibrate the plot axes
+        vals[0] = times
+        vals[0] = amps
+    """
+    arrivals  = [] 
+    for ar in arrival:
+        arrivals.append(Arrival(ar))
+    arrival_list = arrivals
+    amps = np.array([abs(x.amp) for x in arrival_list])
+    times = np.array([x.delay.real for x in arrival_list])
+    rec_angles = np.array([x.rec_ang for x in arrival_list])
+    src_angles = np.array([x.rec_ang for x in arrival_list])
+    """
+    Create the time axis
+    """
+    if type(vals) != type(None):
+        tmin, tmax = np.min(vals[0]), np.max(vals[0])
+    else:
+        tmin, tmax = np.min(times), np.max(times)
+    if type(ref_amp) == type(None):
+        amps = amps / np.max(abs(amps))
+    else:
+        amps /= abs(ref_amp)
+    cvals = 10*np.log10(abs(amps))
+    #cvals = np.linspace(-5, 0, len(amps))
+    """ Make a nice cmap """ 
+    cmap = cm.get_cmap('Spectral')
+    """ Configure the x axis """
+
+    if type(ax) == type(None):
+        fig, ax = plt.subplots() 
+    ax.scatter([tmin, tmax], [0,0], s=0)
+    if src_ang == False:
+        angles = rec_angles
+    else:
+        angles = src_angles
+    max_db_down = 10
+    cvals_normed = abs(cvals) / max_db_down
+    strong_inds = cvals > -max_db_down
+    ax.scatter(times[strong_inds], angles[strong_inds], s=25, c=cmap(cvals_normed[strong_inds]))
+    vals = [times, amps]
+    ymin, ymax = -1.5*np.max(abs(angles)), 1.5*np.max(abs(angles))
+    ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Travel time ellipse")
+    ax.set_xlabel('Delay [s]')
+    ax.set_ylabel('??? $\Phi$ ???')
+    ax.grid('all')
+    return ymin, ymax, vals
+
+
+def plot_lvl(X, Z, pressure, PlotTitle, **kwargs):
+    X,Y = np.meshgrid(X, Z)
+    fig, ax = plt.subplots() 
+    im = ax.pcolormesh(X,Y,20*np.log10(np.abs(pressure[0,0,:,:])/np.max(np.abs(pressure))), cmap='jet', shading='gouraud', **kwargs)
+    ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Pressure")
+    ax.set_xlabel('Range [km]')
+    ax.set_ylabel('Depth [m]')
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.ax.set_ylabel('Level [dB re $P_{max}$]')
+    ax.invert_yaxis()
+    return fig, ax
+
+def plot_mod(modes, n, PlotTitle, **kwargs):
+    fig, ax = plt.subplots()
+    ax.plot(modes.phi[:,0:n], modes.z)
+    ax.set_ylabel('Depth [m]')
+    ax.grid()
+    ax.set_ylim([0,200])
+    ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+f" First {n} Mode Shapes")
+    ax.invert_yaxis()
+    return fig, ax
+
+
+    

@@ -1386,7 +1386,7 @@ def read_arrivals_asc_alt(fname, narrmx=200):
                     arrival_list.append(loc_arrivals)
     return arrival_list, pos
 
-def plotray(fname):
+def plot_ray(fname, PlotTitle):
     """
     Translation of plotray to Python
     Hunter Akins 2021
@@ -1455,7 +1455,10 @@ def plotray(fname):
                     elif num_bot_bnc == 1:
                         axis.plot(x,y, color='tab:brown', alpha=.85)
                     line_ind += 1
-                    
+        axis.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Rays")
+        axis.set_xlabel('Range [m]')
+        axis.set_ylabel('Depth [m]')
+        axis.grid('all')            
         return fig, axis
 
 def get_rays(fname):
