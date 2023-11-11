@@ -110,7 +110,7 @@ class HS:
         self.betaI = np.array(betaI)
         
 class BotBndry:
-    def __init__(self, Opt, Hs, depth=[], betaI=[0], ):
+    def __init__(self, Opt, Hs, depth=[], betaI=[0]):
         self.Opt = Opt # 'A' for analytic or 'CVW' for interpolated ssp
         self.hs = Hs
 
@@ -120,6 +120,7 @@ class TopBndry:
         self.cp = None
         self.cs = None
         self.rho = None 
+
 
 class Bndry:
     def __init__(self, top, bot):
@@ -544,13 +545,24 @@ def plot_elp(arrival, PlotTitle, vals=None, ref_amp =None, src_ang=False, ax=Non
     return ymin, ymax, vals
 
 
-def plot_lvl(X, Z, pressure, PlotTitle, **kwargs):
+def plot_lvl(X, Z, pressure, bathy, PlotTitle, vmin, vmax, **kwargs):
+
+    
+    """ Remove TL in sediment and reduce artifacts """
+    for ii,x in enumerate(X): # For all map pixels
+        for jj,y in enumerate(Z):
+            if y > np.interp(x, bathy[:,0], bathy[:,1]):
+                pressure[0,0,jj,ii] = vmin
+                
     X,Y = np.meshgrid(X, Z)
     fig, ax = plt.subplots() 
-    im = ax.pcolormesh(X,Y,20*np.log10(np.abs(pressure[0,0,:,:])/np.max(np.abs(pressure))), cmap='jet', shading='gouraud', **kwargs)
+    im = ax.pcolormesh(X,Y,20*np.log10(np.abs(pressure[0,0,:,:])/np.max(np.abs(pressure))), cmap='jet', shading='gouraud', vmin=vmin, vmax=vmax, **kwargs)
+    ax.plot(bathy[:,0], bathy[:,1], 'k', linewidth=8)
     ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Pressure")
     ax.set_xlabel('Range [km]')
     ax.set_ylabel('Depth [m]')
+    ax.set_xlim((0, X[-1,-1]))
+    ax.set_ylim((0, Y[-1,-1]))
     cbar = fig.colorbar(im, ax=ax)
     cbar.ax.set_ylabel('Level [dB re $P_{max}$]')
     ax.invert_yaxis()
@@ -566,7 +578,7 @@ def plot_mod(modes, n, PlotTitle, **kwargs):
     ax.invert_yaxis()
     return fig, ax
 
-def plot_ray(fname, PlotTitle):
+def plot_ray(X, Z, fname, bathy, PlotTitle):
     """
     Translation of plotray to Python
     Hunter Akins 2021
@@ -627,16 +639,20 @@ def plot_ray(fname, PlotTitle):
 
                     num_bnc = num_top_bnc+ num_bot_bnc
                     if num_top_bnc == 0 and num_bot_bnc==0: 
-                        axis.plot(x,y, color='k')
+                        axis.plot(x/1000,y, color='k')
                     elif num_bnc > 1:
-                        axis.plot(x,y, color='r', alpha=.5)
+                        axis.plot(x/1000,y, color='r', alpha=.5)
                     elif num_top_bnc == 1:
-                        axis.plot(x,y, color='b', alpha=.5)
+                        axis.plot(x/1000,y, color='b', alpha=.5)
                     elif num_bot_bnc == 1:
-                        axis.plot(x,y, color='tab:brown', alpha=.85)
+                        axis.plot(x/1000,y, color='tab:brown', alpha=.85)
                     line_ind += 1
+        axis.plot(bathy[:,0], bathy[:,1], 'k', linewidth=8)
+        axis.set_xlim((0, X[-1]))
+        axis.set_ylim((0, Z[-1]))
+        axis.invert_yaxis()
         axis.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Rays")
-        axis.set_xlabel('Range [m]')
+        axis.set_xlabel('Range [km]')
         axis.set_ylabel('Depth [m]')
         axis.grid('all')            
         return fig, axis

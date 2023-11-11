@@ -341,7 +341,7 @@ def write_ssp(sspfile, cw, r_arr):
             f.write('\r\n')
         return
 
-def write_bathy( btyfile, range_depth_array, interp):
+def write_bty( btyfile, range_depth_array, interp):
     """
     Input 
     btyfile - string    
@@ -1447,4 +1447,4 @@ def write_ati(filename, depth, interp):
         f.write("'%c'\n" % ('C' if interp == 'C' else 'L'))
         f.write(str(depth.shape[0])+"\n")
         for j in range(depth.shape[0]):
-            f.write("%0.6f %0.6f\n" % (depth[j,0]/1000, depth[j,1]))
+            f.write("%0.6f %0.6f\n" % (depth[j,0], depth[j,1]))
