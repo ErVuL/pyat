@@ -629,9 +629,9 @@ def plot_ray(fname, PlotTitle):
                     if num_top_bnc == 0 and num_bot_bnc==0: 
                         axis.plot(x,y, color='k')
                     elif num_bnc > 1:
-                        axis.plot(x,y, color='r', alpha=.85)
+                        axis.plot(x,y, color='r', alpha=.5)
                     elif num_top_bnc == 1:
-                        axis.plot(x,y, color='b', alpha=.85)
+                        axis.plot(x,y, color='b', alpha=.5)
                     elif num_bot_bnc == 1:
                         axis.plot(x,y, color='tab:brown', alpha=.85)
                     line_ind += 1

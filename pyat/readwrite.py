@@ -224,7 +224,7 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
     f.write('\'' + TitleEnv + '\' ! Title \r\n')
     f.write('{:8.2f}'.format(freq) +' \t \t \t ! Frequency (Hz) \r\n')
     f.write('{:5d}'.format(ssp.NMedia)+ ' \t \t \t ! NMedia \r\n')
-    f.write('\'' + bdry.Top.Opt + '\''+ ' \t \t \t ! Top Option \r\n')
+    f.write('\'' + str(bdry.Top.Opt) + '\''+ ' \t \t \t ! Top Option \r\n')
 
     if ( bdry.Top.Opt[0] == 'A' ): # analytic boundary
         f.write('     {:6.2f}'.format(ssp.depth[0]) + \
@@ -257,7 +257,7 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
                 '/ \t ! z c cs rho \r\n')
 
     # lower halfspace
-    f.write('\''+bdry.Bot.Opt + '\'' + ' {:6.2f}'.format(ssp.sigma[1]) + '  \t \t ! Bottom Option, sigma\r\n') # ssp.sigma( 2 ) )
+    f.write('\''+ str(bdry.Bot.Opt) + '\'' + ' {:6.2f}'.format(ssp.sigma[1]) + '  \t \t ! Bottom Option, sigma\r\n') # ssp.sigma( 2 ) )
 
     fmtr = {'all': lambda x: ' {:6.2f}'.format(float(x))}#, 'void': lambda x: ''}
     a = np.array([])
@@ -271,8 +271,9 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
             string = ' 0.00'
         s += string
     if ( bdry.Bot.Opt[0] == 'A' ):
-#        print('{:6.2f}'.format(bdry.Bot.hs.betaI[0]))
+        #print('{:6.2f}'.format(bdry.Bot.hs.betaI[0]))
         f.write('   ' + s + '  \t  / \t ! lower halfspace \r\n')
+        
 
     if  model in  [ 'SCOOTER', 'KRAKEN', 'KRAKENC', 'SPARC' ]:
         f.write('{:6.0f} '.format(cint.Low) + '{:6.0f} \t \t ! cLow cHigh (m/s) \r\n'.format(cint.High))   # phase speed limits
@@ -340,7 +341,7 @@ def write_ssp(sspfile, cw, r_arr):
             f.write('\r\n')
         return
 
-def write_bathy( btyfile, range_depth_array):
+def write_bathy( btyfile, range_depth_array, interp):
     """
     Input 
     btyfile - string    
@@ -351,7 +352,7 @@ def write_bathy( btyfile, range_depth_array):
     if btyfile[-3:] != 'bty':
         btyfile += '.bty'
     with open(btyfile, 'w') as f:
-        f.write("\'CS\'\r\n") 
+        f.write("\'"+str(interp)+"\'\r\n") 
         f.write(str(range_depth_array.shape[0])+'\r\n')
         for row in range(range_depth_array.shape[0]):
             vals = range_depth_array[row,:]
