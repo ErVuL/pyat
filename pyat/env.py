@@ -489,7 +489,7 @@ def plot_cir(arrival, PlotTitle, vals=None,ax=None, **kwargs):
     ax.grid('all')
     return ymin, ymax, vals
 
-def plot_ellipse(arrival, PlotTitle, vals=None, ref_amp =None, src_ang=False, ax=None, **kwargs):
+def plot_elp(arrival, PlotTitle, vals=None, ref_amp =None, src_ang=False, ax=None, **kwargs):
     """
     Produce the travel time ellipse with colorbar for amplitude
     Input - 
@@ -565,3 +565,78 @@ def plot_mod(modes, n, PlotTitle, **kwargs):
     ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+f" First {n} Mode Shapes")
     ax.invert_yaxis()
     return fig, ax
+
+def plot_ray(fname, PlotTitle):
+    """
+    Translation of plotray to Python
+    Hunter Akins 2021
+    """
+    # Plot the RAYfil produced by Bellhop or Bellhop3D
+    #% usage: plotray( rayfil )
+    #% where rayfil is the ray file (extension is optional)
+    #% e.g. plotray( 'foofoo' )
+    #%
+    #% for BELLHOP3D files, rays in (x,y,z) are converted to (r,z) coordinates
+    #%
+    #% MBP July 1999
+
+    #global units jkpsflag
+
+    with open(fname, 'r') as f:
+        lines = f.readlines()
+        TITLE       = lines[0]
+        freq = float(lines[1])
+        tmp = lines[2].split(' ')
+        tmp = [x for x in tmp if x != '']
+        Nsx = int(tmp[0])
+        Nsy = int(tmp[1])
+        Nsz = int(tmp[2])
+        tmp = lines[3].split(' ')
+        tmp = [x for x in tmp if x != '']
+        Nalpha = int(tmp[0])
+        Nbeta = int(tmp[1])
+        deptht = float(lines[4])
+        depthb = float(lines[5])
+
+
+        fig, axis = plt.subplots(1,1)
+        axis.set_ylim([0, depthb+50])
+        axis.invert_yaxis()
+
+        line_ind = 7
+        for i in range(Nsz):
+            for ibeam in range(Nalpha):
+                if line_ind >= len(lines)-1:
+                    break
+                else:
+                    angle = float(lines[line_ind])
+                    line_ind += 1
+                    tmp = lines[line_ind].split(' ')
+                    tmp = [x for x in tmp if x != '']
+                    nsteps = int(tmp[0])
+                    num_top_bnc= int(tmp[1])
+                    num_bot_bnc= int(tmp[2])
+                    line_ind +=  1
+                    x,y = np.zeros(nsteps), np.zeros(nsteps)
+                    counter = 0
+                    for line_ind in range(line_ind, line_ind + nsteps):
+                        tmp = lines[line_ind].split(' ')
+                        tmp = [x for x in tmp if x != '']
+                        x[counter],y[counter] = float(tmp[0]), float(tmp[1])
+                        counter +=1
+
+                    num_bnc = num_top_bnc+ num_bot_bnc
+                    if num_top_bnc == 0 and num_bot_bnc==0: 
+                        axis.plot(x,y, color='k')
+                    elif num_bnc > 1:
+                        axis.plot(x,y, color='r', alpha=.85)
+                    elif num_top_bnc == 1:
+                        axis.plot(x,y, color='b', alpha=.85)
+                    elif num_bot_bnc == 1:
+                        axis.plot(x,y, color='tab:brown', alpha=.85)
+                    line_ind += 1
+        axis.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Rays")
+        axis.set_xlabel('Range [m]')
+        axis.set_ylabel('Depth [m]')
+        axis.grid('all')            
+        return fig, axis
