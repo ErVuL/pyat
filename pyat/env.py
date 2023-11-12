@@ -557,7 +557,7 @@ def plot_lvl(X, Z, pressure, bathy, PlotTitle, vmin, vmax, **kwargs):
     X,Y = np.meshgrid(X, Z)
     fig, ax = plt.subplots() 
     im = ax.pcolormesh(X,Y,20*np.log10(np.abs(pressure[0,0,:,:])/np.max(np.abs(pressure))), cmap='jet', shading='gouraud', vmin=vmin, vmax=vmax, **kwargs)
-    ax.plot(bathy[:,0], bathy[:,1], 'k', linewidth=8)
+    ax.plot(bathy[:,0], bathy[:,1], 'k', linewidth=3)
     ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+" Pressure")
     ax.set_xlabel('Range [km]')
     ax.set_ylabel('Depth [m]')
@@ -647,7 +647,7 @@ def plot_ray(X, Z, fname, bathy, PlotTitle):
                     elif num_bot_bnc == 1:
                         axis.plot(x/1000,y, color='tab:brown', alpha=.85)
                     line_ind += 1
-        axis.plot(bathy[:,0], bathy[:,1], 'k', linewidth=8)
+        axis.plot(bathy[:,0], bathy[:,1], 'k', linewidth=3)
         axis.set_xlim((0, X[-1]))
         axis.set_ylim((0, Z[-1]))
         axis.invert_yaxis()
