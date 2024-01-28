@@ -220,7 +220,6 @@ def write_env( envfil, model, TitleEnv, freq, ssp, bdry, pos, beam, cint, RMax, 
 
     model =  model.upper()   # convert to uppercase
 
-
     f.write('\'' + TitleEnv + '\' ! Title \r\n')
     f.write('{:8.2f}'.format(freq) +' \t \t \t ! Frequency (Hz) \r\n')
     f.write('{:5d}'.format(ssp.NMedia)+ ' \t \t \t ! NMedia \r\n')

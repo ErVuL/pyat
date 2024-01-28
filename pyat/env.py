@@ -573,8 +573,8 @@ def plot_mod(modes, n, PlotTitle, **kwargs):
     ax.plot(modes.phi[:,0:n], modes.z)
     ax.set_ylabel('Depth [m]')
     ax.grid()
-    ax.set_ylim([0,200])
-    ax.set_title("[ "+PlotTitle[0].decode('utf-8')+"]"+f" First {n} Mode Shapes")
+    ax.set_ylim([0,100])
+    ax.set_title("[ "+PlotTitle+"]"+f" First {n} Mode Shapes")
     ax.invert_yaxis()
     return fig, ax
 
